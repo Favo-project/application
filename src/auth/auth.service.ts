@@ -12,7 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
-  ) {}
+  ) { }
 
   async signup(dto: AuthDto) {
     // generate the password
@@ -23,12 +23,12 @@ export class AuthService {
     try {
       const user = await this.prisma.user.create({
         data: {
-          email: dto.email,
+          phone: dto.phone,
           hash,
         },
       });
 
-      return this.signToken(user.id, user.email);
+      return this.signToken(user.id, user.phone);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -43,7 +43,7 @@ export class AuthService {
     // find the user by email
     const user = await this.prisma.user.findUnique({
       where: {
-        email: dto.email,
+        phone: dto.phone,
       },
     });
 
@@ -56,16 +56,16 @@ export class AuthService {
     // if password incorrect throw exception
     if (!pwMatch) throw new ForbiddenException('Credentials incorrect');
 
-    return this.signToken(user.id, user.email);
+    return this.signToken(user.id, user.phone);
   }
 
   async signToken(
     userId: number,
-    email: string,
+    phone: number,
   ): Promise<{ access_token: string }> {
     const payload = {
       sub: userId,
-      email,
+      phone,
     };
 
     const secret = this.config.get('JWT_SECRET');

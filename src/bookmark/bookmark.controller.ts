@@ -19,7 +19,7 @@ import { CreateBookmarkDto, EditBookmarkDto } from './dto';
 @UseGuards(JwtGuard)
 @Controller('bookmarks')
 export class BookmarkController {
-  constructor(private bookmarkService: BookmarkService) {}
+  constructor(private bookmarkService: BookmarkService) { }
 
   @Get()
   getBookmarks(@GetUser('id') userId: number) {
