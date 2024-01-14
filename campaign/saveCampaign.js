@@ -166,33 +166,37 @@ class SaveCampaign {
   // method for saving canvas instance as image to local storage
   async saveAsImage(canvas, typeName, campaignId) {
     return await executeAsyncOperation((cb) => {
-      // converting canvas to base64 image URL
-      const dataURL = canvas.toDataURL({
-        quality: 1, // quality identifier for jpeg
-        format: "jpeg",
-        multiplier: 3, // scales canvas by the value, scales its quality
-      });
+      try {
+        // converting canvas to base64 image URL
+        const dataURL = canvas.toDataURL({
+          quality: 1, // quality identifier for jpeg
+          format: "jpeg",
+          multiplier: 3, // scales canvas by the value, scales its quality
+        });
 
-      // converting base64 to Buffer data
-      const base64Data = dataURL.split(",")[1];
-      const decodedImage = Buffer.from(base64Data, "base64");
+        // converting base64 to Buffer data
+        const base64Data = dataURL.split(",")[1];
+        const decodedImage = Buffer.from(base64Data, "base64");
 
-      // defining file path
-      const dirPath = path.join(
-        __dirname,
-        "..",
-        `/public/campaigns/${campaignId}`
-      );
-      const filePath = `/campaigns/${campaignId}/${typeName}.jpeg`;
-      const originalPath = path.join(__dirname, "../public", filePath);
+        // defining file path
+        const dirPath = path.join(
+          __dirname,
+          "..",
+          `/public/campaigns/${campaignId}`
+        );
+        const filePath = `/campaigns/${campaignId}/${typeName}.jpeg`;
+        const originalPath = path.join(__dirname, "../public", filePath);
 
-      if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath);
+        if (!fs.existsSync(dirPath)) {
+          fs.mkdirSync(dirPath);
+        }
+
+        // saving the file to local storage
+        fs.writeFileSync(originalPath, decodedImage);
+        cb(null, filePath);
+      } catch (e) {
+        console.log(e);
       }
-
-      // saving the file to local storage
-      fs.writeFileSync(originalPath, decodedImage);
-      cb(null, filePath);
     });
   }
 }

@@ -79,6 +79,21 @@ const campaignSchema = mongoose.Schema({
           },
         },
       ],
+      baseCost: {
+        type: Number,
+        required: [true, "Base cost is required"],
+        default: 0,
+      },
+      maxCost: {
+        type: Number,
+        required: [true, "Max cost is required"],
+        default: 0,
+      },
+      sellingPrice: {
+        type: Number,
+        required: [true, "Selling price is required"],
+        default: 0,
+      },
     },
   ],
   images: [
@@ -119,8 +134,15 @@ const campaignSchema = mongoose.Schema({
         type: String,
         required: [true, "Tag nomi majburiy!"],
       },
+      relatedTags: Boolean,
+      customTag: Boolean,
+      relatedTo: String,
     },
   ],
+  campaignLevel: {
+    type: Number,
+    required: [true, "Campaign level is required"],
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

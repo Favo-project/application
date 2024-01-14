@@ -4,11 +4,10 @@ const ErrorResponse = require("../utils/errorResponse");
 const Campaign = require("../schemas/Campaign");
 const { isDeepStrictEqual } = require("util");
 const { isValidObjectId } = require("mongoose");
+const deleteDirectory = require("../utils/deleteDir");
 
 exports.getAll = asyncHandler(async (req, res, next) => {
   const campaigns = await Campaign.find();
-
-  console.log(campaigns);
 
   return res.status(200).json({ success: true, data: campaigns });
 });
@@ -26,11 +25,14 @@ exports.create = asyncHandler(async (req, res, next) => {
     );
   }
 
+  console.table(campaignData.products);
+
   // creating mongodb instance of campaign
   const campaign = new Campaign({
     title: "Draft campaign",
     design: campaignData.design,
     products: campaignData.products,
+    campaignLevel: campaignData.campaignLevel,
     images: [],
     status: "Draft",
   });
@@ -88,6 +90,9 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
       },
     });
   } else {
+    // sending campaign data and campaign id in order save images in proper file
+    const campaignImages = await saveCampaign.onSave(req.body, campaignId);
+
     // edit the campaign
     const updatedCampaign = await Campaign.findByIdAndUpdate(
       {
@@ -98,6 +103,7 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
           ...req.body.design,
         },
         products: [...req.body.products],
+        images: [...campaignImages],
         _id: campaignId,
       },
       { new: true }
@@ -105,19 +111,50 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: {
-        updated: true,
-        message: "Campaign saved",
-        campaign: updatedCampaign,
-      },
+      data: updatedCampaign,
+      updated: true,
+      message: "Campaign saved",
     });
   }
 });
 
 exports.modifyOne = asyncHandler(async (req, res, next) => {
-  return "modifyOne";
+  const { campaignId } = req.params;
+
+  if (!isValidObjectId(campaignId)) {
+    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
+  }
+
+  const updatedCampaign = await Campaign.findByIdAndUpdate(
+    {
+      _id: campaignId,
+    },
+    {
+      ...req.body,
+      // tags: [],
+      _id: campaignId,
+    },
+    { new: true }
+  );
+
+  res.status(200).json({
+    success: true,
+    data: updatedCampaign,
+    updated: true,
+    message: "Campaign saved",
+  });
 });
 
 exports.deleteOne = asyncHandler(async (req, res, next) => {
-  return "deleteOne";
+  const { campaignId } = req.params;
+
+  if (!isValidObjectId(campaignId)) {
+    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
+  }
+
+  await deleteDirectory(campaignId);
+
+  await Campaign.deleteOne({ _id: campaignId });
+
+  res.sendStatus(204);
 });
