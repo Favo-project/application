@@ -33,6 +33,7 @@ exports.create = asyncHandler(async (req, res, next) => {
     design: campaignData.design,
     products: campaignData.products,
     campaignLevel: campaignData.campaignLevel,
+    sizes: campaignData.sizes,
     images: [],
     status: "Draft",
   });
@@ -90,6 +91,9 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
       },
     });
   } else {
+    // first deleting old files to update them properly
+    await deleteDirectory(campaignId);
+
     // sending campaign data and campaign id in order save images in proper file
     const campaignImages = await saveCampaign.onSave(req.body, campaignId);
 
@@ -151,8 +155,6 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
   if (!isValidObjectId(campaignId)) {
     return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
   }
-
-  await deleteDirectory(campaignId);
 
   await Campaign.deleteOne({ _id: campaignId });
 

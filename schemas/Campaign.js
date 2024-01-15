@@ -79,6 +79,12 @@ const campaignSchema = mongoose.Schema({
           },
         },
       ],
+      sizes: [
+        {
+          type: String,
+          required: [true, "Size is required"],
+        },
+      ],
       baseCost: {
         type: Number,
         required: [true, "Base cost is required"],

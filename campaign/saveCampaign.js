@@ -2,6 +2,7 @@ const { fabric } = require("fabric");
 const fs = require("fs");
 const path = require("path");
 const { executeAsyncOperation } = require("../utils");
+const deleteDirectory = require("../utils/deleteDir");
 
 class SaveCampaign {
   // saving all campaign products as images
@@ -165,7 +166,7 @@ class SaveCampaign {
 
   // method for saving canvas instance as image to local storage
   async saveAsImage(canvas, typeName, campaignId) {
-    return await executeAsyncOperation((cb) => {
+    return await executeAsyncOperation(async (cb) => {
       try {
         // converting canvas to base64 image URL
         const dataURL = canvas.toDataURL({
@@ -184,7 +185,7 @@ class SaveCampaign {
           "..",
           `/public/campaigns/${campaignId}`
         );
-        const filePath = `/campaigns/${campaignId}/${typeName}.jpeg`;
+        const filePath = `/campaigns/${campaignId}/${typeName}-${Date.now()}.jpeg`;
         const originalPath = path.join(__dirname, "../public", filePath);
 
         if (!fs.existsSync(dirPath)) {
