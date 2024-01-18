@@ -31,18 +31,16 @@ exports.create = asyncHandler(async (req, res, next) => {
   const campaign = new Campaign({
     title: "Draft campaign",
     design: campaignData.design,
-    products: campaignData.products,
     campaignLevel: campaignData.campaignLevel,
     sizes: campaignData.sizes,
-    images: [],
     status: "Draft",
   });
 
   // sending campaign data and campaign id in order save images in proper file
-  const campaignImages = await saveCampaign.onSave(campaignData, campaign._id);
+  const products = await saveCampaign.onSave(campaignData, campaign._id);
 
   // inserting saved images to campaign data
-  campaign.images = [...campaignImages];
+  campaign.products = [...products];
 
   // saving campaign in mongoDB
   await campaign.save();
@@ -54,6 +52,7 @@ exports.create = asyncHandler(async (req, res, next) => {
     data: campaign,
   });
 });
+
 exports.getOne = asyncHandler(async (req, res, next) => {
   const campaign = await Campaign.findById(req.params.campaignId);
 
@@ -95,7 +94,7 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
     await deleteDirectory(campaignId);
 
     // sending campaign data and campaign id in order save images in proper file
-    const campaignImages = await saveCampaign.onSave(req.body, campaignId);
+    const products = await saveCampaign.onSave(req.body, campaignId);
 
     // edit the campaign
     const updatedCampaign = await Campaign.findByIdAndUpdate(
@@ -106,8 +105,7 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
         design: {
           ...req.body.design,
         },
-        products: [...req.body.products],
-        images: [...campaignImages],
+        products: [...products],
         _id: campaignId,
       },
       { new: true }
@@ -135,7 +133,6 @@ exports.modifyOne = asyncHandler(async (req, res, next) => {
     },
     {
       ...req.body,
-      // tags: [],
       _id: campaignId,
     },
     { new: true }
@@ -156,7 +153,34 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
   }
 
+  await deleteDirectory(campaignId);
+
   await Campaign.deleteOne({ _id: campaignId });
 
   res.sendStatus(204);
+});
+
+exports.launchCampaign = asyncHandler(async (req, res, next) => {
+  const { campaignId } = req.params;
+  const campaign = req.body;
+
+  const updatedCampaign = await Campaign.findByIdAndUpdate(
+    {
+      _id: campaignId,
+    },
+    {
+      ...campaign,
+      campaignLevel: 4,
+      status: "Launched",
+      _id: campaignId,
+    },
+    { new: true }
+  );
+
+  console.table(updatedCampaign);
+
+  res.status(200).json({
+    success: true,
+    data: "Campaign launched",
+  });
 });

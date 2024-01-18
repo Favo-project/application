@@ -62,6 +62,9 @@ class SaveCampaign {
             return {
               ...type,
               image: {
+                ...type.image,
+              },
+              designImg: {
                 front: imageUrlFront,
                 back: imageUrlBack,
               },
@@ -70,12 +73,12 @@ class SaveCampaign {
         );
 
         return {
-          name: product.name,
+          ...product,
           colors,
         };
       })
-    ).catch((e) => {
-      console.log(e);
+    ).catch((err) => {
+      throw err;
     });
   }
 
@@ -93,8 +96,8 @@ class SaveCampaign {
           await this.addImage(canvas, elem, pArea);
         }
       })
-    ).catch((e) => {
-      console.log(e);
+    ).catch((err) => {
+      throw err;
     });
   }
 
@@ -195,8 +198,8 @@ class SaveCampaign {
         // saving the file to local storage
         fs.writeFileSync(originalPath, decodedImage);
         cb(null, filePath);
-      } catch (e) {
-        console.log(e);
+      } catch (err) {
+        throw err;
       }
     });
   }

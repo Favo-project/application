@@ -77,6 +77,16 @@ const campaignSchema = mongoose.Schema({
               required: [true, "Product rasmi majburiy!"],
             },
           },
+          designImg: {
+            front: {
+              type: String,
+              required: [true, "Product rasmi majburiy!"],
+            },
+            back: {
+              type: String,
+              required: [true, "Product rasmi majburiy!"],
+            },
+          },
         },
       ],
       sizes: [
@@ -102,38 +112,6 @@ const campaignSchema = mongoose.Schema({
       },
     },
   ],
-  images: [
-    {
-      name: {
-        type: String,
-        required: [true, "Rasm nomi majburiy!"],
-      },
-      colors: [
-        {
-          color: {
-            name: {
-              type: String,
-              required: [true, "Rang nomi majburiy!"],
-            },
-            content: {
-              type: String,
-              required: [true, "Product rangi majburiy!"],
-            },
-          },
-          image: {
-            front: {
-              type: String,
-              required: [true, "Product rasmi majburiy!"],
-            },
-            back: {
-              type: String,
-              required: [true, "Product rasmi majburiy!"],
-            },
-          },
-        },
-      ],
-    },
-  ],
   tags: [
     {
       name: {
@@ -150,6 +128,10 @@ const campaignSchema = mongoose.Schema({
     required: [true, "Campaign level is required"],
   },
   createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  updatedAt: {
     type: Date,
     default: Date.now(),
   },
