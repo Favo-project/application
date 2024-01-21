@@ -48,6 +48,10 @@ exports.login = asyncHandler(async (req, res, next) => {
     const userData = {
       name: user?.name,
       phone: user?.phone,
+      email: user?.email,
+      photo: user?.photo,
+      createdAt: user?.createdAt,
+      updatedAt: user?.updatedAt,
     };
 
     const accessToken = generateAccessToken(userData);

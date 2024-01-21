@@ -14,6 +14,7 @@ const userSchema = mongoose.Schema({
     type: String,
     unique: true,
   },
+  photo: String,
   hash: {
     type: String,
     required: [true, "Foydalanuvchi paroli majburiy!"],
