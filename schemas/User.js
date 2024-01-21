@@ -10,6 +10,10 @@ const userSchema = mongoose.Schema({
     required: [true, "Foydalanuvchi tel. raqami majburiy!"],
     unique: true,
   },
+  email: {
+    type: String,
+    unique: true,
+  },
   hash: {
     type: String,
     required: [true, "Foydalanuvchi paroli majburiy!"],
@@ -17,6 +21,10 @@ const userSchema = mongoose.Schema({
     select: false,
   },
   createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  updatedAt: {
     type: Date,
     default: Date.now(),
   },

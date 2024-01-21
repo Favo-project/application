@@ -127,6 +127,17 @@ const campaignSchema = mongoose.Schema({
     type: Number,
     required: [true, "Campaign level is required"],
   },
+  soldAmount: {
+    type: Number,
+    required: [true, "Campaign sold amount is required"],
+    default: 0,
+  },
+  creatorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, "Creator of the campaign is required"],
+    ref: "User",
+    select: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

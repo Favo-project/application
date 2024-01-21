@@ -7,7 +7,6 @@ const {
   editAndSave,
   modifyOne,
   deleteOne,
-  launchCampaign,
 } = require("../controllers/campaign");
 const router = Router();
 
@@ -18,6 +17,5 @@ router
   .patch(authenticateUser, editAndSave)
   .put(authenticateUser, modifyOne)
   .delete(authenticateUser, deleteOne);
-router.route("/launch/:campaignId").post(authenticateUser, launchCampaign);
 
 module.exports = router;

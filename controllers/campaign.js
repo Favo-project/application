@@ -5,9 +5,21 @@ const Campaign = require("../schemas/Campaign");
 const { isDeepStrictEqual } = require("util");
 const { isValidObjectId } = require("mongoose");
 const deleteDirectory = require("../utils/deleteDir");
+const User = require("../schemas/User");
 
 exports.getAll = asyncHandler(async (req, res, next) => {
-  const campaigns = await Campaign.find();
+  const user = await User.findOne({ phone: req.user.phone }, { creatorId: 0 });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
+
+  const campaigns = await Campaign.find(
+    { creatorId: user._id },
+    {
+      creatorId: 0,
+    }
+  );
 
   return res.status(200).json({ success: true, data: campaigns });
 });
@@ -25,7 +37,11 @@ exports.create = asyncHandler(async (req, res, next) => {
     );
   }
 
-  console.table(campaignData.products);
+  const user = await User.findOne({ phone: req.user.phone });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
 
   // creating mongodb instance of campaign
   const campaign = new Campaign({
@@ -34,6 +50,7 @@ exports.create = asyncHandler(async (req, res, next) => {
     campaignLevel: campaignData.campaignLevel,
     sizes: campaignData.sizes,
     status: "Draft",
+    creatorId: user._id,
   });
 
   // sending campaign data and campaign id in order save images in proper file
@@ -45,8 +62,7 @@ exports.create = asyncHandler(async (req, res, next) => {
   // saving campaign in mongoDB
   await campaign.save();
 
-  console.log("Campaign saved!");
-
+  campaign.creatorId = null;
   res.status(201).json({
     success: true,
     data: campaign,
@@ -54,7 +70,21 @@ exports.create = asyncHandler(async (req, res, next) => {
 });
 
 exports.getOne = asyncHandler(async (req, res, next) => {
-  const campaign = await Campaign.findById(req.params.campaignId);
+  const user = await User.findOne({ phone: req.user.phone });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
+
+  const campaign = await Campaign.findOne(
+    {
+      _id: req.params.campaignId,
+      creatorId: user._id,
+    },
+    {
+      creatorId: 0,
+    }
+  );
 
   res.status(200).json({
     success: true,
@@ -69,7 +99,25 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
   }
 
-  const campaign = await Campaign.findById(campaignId);
+  const user = await User.findOne({ phone: req.user.phone });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
+
+  const campaign = await Campaign.findOne(
+    {
+      _id: campaignId,
+      creatorId: user._id,
+    },
+    {
+      creatorId: 0,
+    }
+  );
+
+  if (!campaign) {
+    return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));
+  }
 
   const campaignSelect = {
     design: { ...JSON.parse(JSON.stringify(campaign.design)) },
@@ -102,14 +150,14 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
         _id: campaignId,
       },
       {
-        design: {
-          ...req.body.design,
-        },
+        ...req.body,
         products: [...products],
         _id: campaignId,
       },
       { new: true }
     );
+
+    delete updatedCampaign.creatorId;
 
     res.status(200).json({
       success: true,
@@ -127,6 +175,24 @@ exports.modifyOne = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
   }
 
+  const user = await User.findOne({ phone: req.user.phone });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
+
+  const campaign = await Campaign.findOne(
+    {
+      _id: campaignId,
+      creatorId: user._id,
+    },
+    { title: 1 }
+  );
+
+  if (!campaign) {
+    return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));
+  }
+
   const updatedCampaign = await Campaign.findByIdAndUpdate(
     {
       _id: campaignId,
@@ -137,6 +203,8 @@ exports.modifyOne = asyncHandler(async (req, res, next) => {
     },
     { new: true }
   );
+
+  delete updatedCampaign.creatorId;
 
   res.status(200).json({
     success: true,
@@ -153,34 +221,27 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
   }
 
+  const user = await User.findOne({ phone: req.user.phone });
+
+  if (!user) {
+    return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
+  }
+
+  const campaign = await Campaign.findOne(
+    {
+      _id: campaignId,
+      creatorId: user._id,
+    },
+    { title: 1 }
+  );
+
+  if (!campaign) {
+    return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));
+  }
+
   await deleteDirectory(campaignId);
 
   await Campaign.deleteOne({ _id: campaignId });
 
   res.sendStatus(204);
-});
-
-exports.launchCampaign = asyncHandler(async (req, res, next) => {
-  const { campaignId } = req.params;
-  const campaign = req.body;
-
-  const updatedCampaign = await Campaign.findByIdAndUpdate(
-    {
-      _id: campaignId,
-    },
-    {
-      ...campaign,
-      campaignLevel: 4,
-      status: "Launched",
-      _id: campaignId,
-    },
-    { new: true }
-  );
-
-  console.table(updatedCampaign);
-
-  res.status(200).json({
-    success: true,
-    data: "Campaign launched",
-  });
 });
