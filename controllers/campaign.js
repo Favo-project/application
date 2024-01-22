@@ -3,9 +3,10 @@ const saveCampaign = require("../campaign/saveCampaign");
 const ErrorResponse = require("../utils/errorResponse");
 const Campaign = require("../schemas/Campaign");
 const { isDeepStrictEqual } = require("util");
-const { isValidObjectId } = require("mongoose");
+const { isValidObjectId, default: mongoose } = require("mongoose");
 const deleteDirectory = require("../utils/deleteDir");
 const User = require("../schemas/User");
+const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ phone: req.user.phone }, { creatorId: 0 });
@@ -244,4 +245,127 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
   await Campaign.deleteOne({ _id: campaignId });
 
   res.sendStatus(204);
+});
+
+exports.getAllPublic = asyncHandler(async (req, res, next) => {
+  const campaigns = await Campaign.aggregate([
+    {
+      $match: {
+        status: "Launched",
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "creatorId",
+        foreignField: "_id",
+        as: "creator",
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              photo: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        soldAmount: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        products: {
+          name: 1,
+          colors: {
+            color: 1,
+            designImg: 1,
+          },
+          sizes: 1,
+          sellingPrice: 1,
+        },
+        tags: 1,
+        creator: {
+          $arrayElemAt: ["$creator", 0],
+        },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: campaigns,
+  });
+});
+
+exports.getOnePublic = asyncHandler(async (req, res, next) => {
+  const { campaignId } = req.params;
+
+  if (!isValidObjectId(campaignId)) {
+    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
+  }
+
+  const campaign = await Campaign.findOne(
+    {
+      _id: campaignId,
+    },
+    { status: 1, campaignLevel: 1 }
+  );
+
+  if (campaign.campaignLevel < 4 || campaign.status !== "Launched") {
+    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
+  }
+
+  const aggregate = await Campaign.aggregate([
+    {
+      $match: {
+        _id: new ObjectId(campaignId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "creatorId",
+        foreignField: "_id",
+        as: "creator",
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+              photo: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        soldAmount: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        products: {
+          name: 1,
+          colors: {
+            color: 1,
+            designImg: 1,
+          },
+          sizes: 1,
+          sellingPrice: 1,
+        },
+        tags: 1,
+        creator: {
+          $arrayElemAt: ["$creator", 0],
+        },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: aggregate[0],
+  });
 });
