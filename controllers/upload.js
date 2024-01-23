@@ -22,8 +22,6 @@ exports.upload = asyncHandler(async (req, res, next) => {
 exports.getAll = asyncHandler(async (req, res, next) => {
   const images = await Image.find();
 
-  console.log(images);
-
   res.status(200).json({
     success: true,
     data: images,

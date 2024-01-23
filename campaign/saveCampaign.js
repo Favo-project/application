@@ -175,7 +175,7 @@ class SaveCampaign {
         const dataURL = canvas.toDataURL({
           quality: 1, // quality identifier for jpeg
           format: "jpeg",
-          multiplier: 3, // scales canvas by the value, scales its quality
+          multiplier: 2, // scales canvas by the value, scales its quality
         });
 
         // converting base64 to Buffer data

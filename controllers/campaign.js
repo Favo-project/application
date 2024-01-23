@@ -76,8 +76,6 @@ exports.create = asyncHandler(async (req, res, next) => {
 exports.getOne = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ phone: req.user.phone });
 
-  console.log(user);
-
   if (!user) {
     return next(new ErrorResponse(`Foydalanuvchi topilmadi!`, 404));
   }
@@ -194,8 +192,6 @@ exports.modifyOne = asyncHandler(async (req, res, next) => {
     },
     { title: 1 }
   );
-
-  console.log(campaign);
 
   if (!campaign) {
     return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));

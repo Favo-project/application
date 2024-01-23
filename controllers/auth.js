@@ -66,10 +66,6 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 });
 
-exports.getMe = asyncHandler(async (req, res, next) => {
-  console.log(req.user);
-});
-
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
