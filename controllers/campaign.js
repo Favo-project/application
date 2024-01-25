@@ -7,6 +7,8 @@ const { isValidObjectId, default: mongoose } = require("mongoose");
 const deleteDirectory = require("../utils/deleteDir");
 const User = require("../schemas/User");
 const ObjectId = mongoose.Types.ObjectId;
+const fs = require("fs");
+const path = require("path");
 
 exports.getAll = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ phone: req.user.phone }, { creatorId: 0 });
@@ -54,9 +56,34 @@ exports.create = asyncHandler(async (req, res, next) => {
     creatorId: user._id,
   });
 
-  // sending campaign data and campaign id in order save images in proper file
-  const products = await saveCampaign.onSave(campaignData, campaign._id);
+  let products;
+  let productCount = 0;
+  campaignData.products.forEach((product) => {
+    product.colors.forEach((color) => {
+      if (color.image.front) {
+        productCount += 1;
+      }
+      if (color.image.back) {
+        productCount += 1;
+      }
+    });
+  });
 
+  const dir = path.join(
+    __dirname,
+    "..",
+    `/public/campaigns/${campaign._id.toString()}`
+  );
+
+  // sending campaign data and campaign id in order save images in proper file
+  products = await saveCampaign.onSave(campaignData, campaign._id);
+
+  const files = fs.readdirSync(dir);
+  console.log(files.length, "::campaign create");
+
+  if (files.length < productCount) {
+    products = await saveCampaign.onSave(campaignData, campaign._id);
+  }
   // inserting saved images to campaign data
   campaign.products = [...products];
 

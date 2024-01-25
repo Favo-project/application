@@ -109,6 +109,7 @@ class SaveCampaign {
     });
 
     canvas.add(text);
+    canvas.renderAll();
   }
 
   // add svg to canvas instance
@@ -127,6 +128,7 @@ class SaveCampaign {
         });
 
         canvas.add(svgObject);
+        canvas.renderAll();
         cb(null, "Operation completed");
       });
     });
@@ -135,20 +137,21 @@ class SaveCampaign {
   // add image to canvas instance
   async addImage(canvas, obj, pArea) {
     await executeAsyncOperation((cb) => {
-      fabric.Image.fromURL(obj.src, (image) => {
+      fabric.Image.fromURL(obj.imgUrl, (image) => {
         image.set({
           ...obj,
           top: pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
         });
 
         canvas.add(image);
+        canvas.renderAll();
         cb(null, "Operation completed");
       });
     });
   }
 
   // set background to canvas instance
-  async setBackgroundImage(canvas, imgUrl, saveCallback) {
+  async setBackgroundImage(canvas, imgUrl) {
     await executeAsyncOperation((cb) => {
       fabric.Image.fromURL(imgUrl, (image) => {
         image.set({
@@ -186,7 +189,7 @@ class SaveCampaign {
         const dirPath = path.join(
           __dirname,
           "..",
-          `/public/campaigns/${campaignId}`
+          `/public/campaigns/${campaignId.toString()}`
         );
         const filePath = `/campaigns/${campaignId}/${typeName}-${Date.now()}.jpeg`;
         const originalPath = path.join(__dirname, "../public", filePath);
@@ -196,8 +199,9 @@ class SaveCampaign {
         }
 
         // saving the file to local storage
-        fs.writeFileSync(originalPath, decodedImage);
-        cb(null, filePath);
+        fs.writeFile(originalPath, decodedImage, () => {
+          cb(null, filePath);
+        });
       } catch (err) {
         throw err;
       }
