@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema({
   },
   email: {
     type: String,
-    unique: true,
+    // unique: true,
   },
   photo: String,
   hash: {

@@ -1,8 +1,15 @@
 const { fabric } = require("fabric");
+const { registerFont } = require("canvas");
 const fs = require("fs");
 const path = require("path");
 const { executeAsyncOperation } = require("../utils");
-const deleteDirectory = require("../utils/deleteDir");
+
+fabric.nodeCanvas.registerFont(
+  path.join(__dirname, "..", "./public/fonts/VT323-Regular.ttf"),
+  {
+    family: "VT323",
+  }
+);
 
 class SaveCampaign {
   // saving all campaign products as images
@@ -106,6 +113,7 @@ class SaveCampaign {
     const text = new fabric.Text(obj.text, {
       ...obj,
       top: pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
+      fontWeight: "Regular",
     });
 
     canvas.add(text);
