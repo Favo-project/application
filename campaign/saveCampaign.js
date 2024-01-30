@@ -4,13 +4,6 @@ const fs = require("fs");
 const path = require("path");
 const { executeAsyncOperation } = require("../utils");
 
-fabric.nodeCanvas.registerFont(
-  path.join(__dirname, "..", "./public/fonts/VT323-Regular.ttf"),
-  {
-    family: "VT323",
-  }
-);
-
 class SaveCampaign {
   // saving all campaign products as images
   async onSave(campaign, campaignId) {
