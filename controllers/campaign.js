@@ -50,44 +50,51 @@ exports.create = asyncHandler(async (req, res, next) => {
   const campaign = new Campaign({
     title: "Draft campaign",
     design: campaignData.design,
+    products: campaignData.products,
     campaignLevel: campaignData.campaignLevel,
     sizes: campaignData.sizes,
     status: "Draft",
     creatorId: user._id,
   });
 
-  let products;
-  let productCount = 0;
-  campaignData.products.forEach((product) => {
-    product.colors.forEach((color) => {
-      if (color.image.front) {
-        productCount += 1;
-      }
-      if (color.image.back) {
-        productCount += 1;
-      }
-    });
-  });
+  // commented for now
+  // let products;
+  // let productCount = 0;
+  // campaignData.products.forEach((product) => {
+  //   product.colors.forEach((color) => {
+  //     if (color.image.front) {
+  //       productCount += 1;
+  //     }
+  //     if (color.image.back) {
+  //       productCount += 1;
+  //     }
+  //   });
+  // });
 
-  const dir = path.join(
-    __dirname,
-    "..",
-    `/public/campaigns/${campaign._id.toString()}`
-  );
+  // // directory which product design images will be saved
+  // const dir = path.join(
+  //   __dirname,
+  //   "..",
+  //   `/public/campaigns/${campaign._id.toString()}`
+  // );
 
-  // sending campaign data and campaign id in order save images in proper file
-  products = await saveCampaign.onSave(campaignData, campaign._id);
+  // // sending campaign data and campaign id in order save images in proper file
+  // products = await saveCampaign.onSave(campaignData, campaign._id);
 
-  const files = fs.readdirSync(dir);
-  console.log(files.length, "::campaign create");
+  // console.table(products);
 
-  if (files.length < productCount) {
-    products = await saveCampaign.onSave(campaignData, campaign._id);
-  }
-  // inserting saved images to campaign data
-  campaign.products = [...products];
+  // const files = fs.readdirSync(dir);
+  // console.log(files.length, "::campaign create", files.length < productCount);
+
+  // if (files.length < productCount) {
+  //   products = await saveCampaign.onSave(campaignData, campaign._id);
+  // }
+  // // inserting saved images to campaign data
+  // campaign.products = [...products];
 
   // saving campaign in mongoDB
+  //
+
   await campaign.save();
 
   const campaignCopy = JSON.parse(JSON.stringify(campaign));
@@ -170,10 +177,10 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
     });
   } else {
     // first deleting old files to update them properly
-    await deleteDirectory(campaignId);
+    // await deleteDirectory(campaignId); commented for now
 
     // sending campaign data and campaign id in order save images in proper file
-    const products = await saveCampaign.onSave(req.body, campaignId);
+    // const products = await saveCampaign.onSave(req.body, campaignId); commented for now
 
     // edit the campaign
     const updatedCampaign = await Campaign.findByIdAndUpdate(
@@ -182,7 +189,7 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
       },
       {
         ...req.body,
-        products: [...products],
+        // products: [...products], commented for now
         _id: campaignId,
       },
       { new: true }
@@ -270,7 +277,7 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));
   }
 
-  await deleteDirectory(campaignId);
+  // await deleteDirectory(campaignId); commented for now
 
   await Campaign.deleteOne({ _id: campaignId });
 
@@ -307,11 +314,14 @@ exports.getAllPublic = asyncHandler(async (req, res, next) => {
         soldAmount: 1,
         createdAt: 1,
         updatedAt: 1,
+        design: 1,
         products: {
           name: 1,
+          printableArea: 1,
           colors: {
             color: 1,
-            designImg: 1,
+            // designImg: 1, commented for now
+            image: 1,
           },
           sizes: 1,
           sellingPrice: 1,
@@ -377,11 +387,14 @@ exports.getOnePublic = asyncHandler(async (req, res, next) => {
         soldAmount: 1,
         createdAt: 1,
         updatedAt: 1,
+        design: 1,
         products: {
           name: 1,
+          printableArea: 1,
           colors: {
             color: 1,
-            designImg: 1,
+            // designImg: 1, commented for now
+            image: 1,
           },
           sizes: 1,
           sellingPrice: 1,
