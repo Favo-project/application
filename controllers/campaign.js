@@ -344,24 +344,15 @@ exports.getOnePublic = asyncHandler(async (req, res, next) => {
   const { campaignId } = req.params;
 
   if (!isValidObjectId(campaignId)) {
-    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
-  }
-
-  const campaign = await Campaign.findOne(
-    {
-      _id: campaignId,
-    },
-    { status: 1, campaignLevel: 1 }
-  );
-
-  if (campaign.campaignLevel < 4 || campaign.status !== "Launched") {
-    return next(new ErrorResponse(`Campaign ID-${campaignId} toplimadi`, 404));
+    return next(new ErrorResponse(`Dizayn ID-${campaignId} toplimadi`, 404));
   }
 
   const aggregate = await Campaign.aggregate([
     {
       $match: {
         _id: new ObjectId(campaignId),
+        campaignLevel: 4,
+        status: "Launched",
       },
     },
     {
