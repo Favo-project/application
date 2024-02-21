@@ -18,7 +18,7 @@ const deleteDirectory = async (campaignId) => {
       console.error("Directory does not exist");
     }
   } catch (e) {
-    console.error("Error deleting directory:", error);
+    console.error("Error deleting directory:", e?.message);
   }
 };
 

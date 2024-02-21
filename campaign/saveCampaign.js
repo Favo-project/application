@@ -29,7 +29,7 @@ function canvasContent(design, pArea, background) {
                 // Execute asynchronous operation and invoke callback
                 callback((error, result) => {
                   if (error) {
-                    reject(error);
+                    reject(error || null);
                   } else {
                     resolve(result);
                   }
