@@ -1,5 +1,5 @@
 const asyncHandler = require("../middlewares/asyncHandler");
-const saveCampaign = require("../campaign/saveCampaign");
+const { saveCampaign } = require("../campaign/saveCampaign");
 const ErrorResponse = require("../utils/errorResponse");
 const Campaign = require("../schemas/Campaign");
 const { isDeepStrictEqual } = require("util");
@@ -57,40 +57,37 @@ exports.create = asyncHandler(async (req, res, next) => {
     creatorId: user._id,
   });
 
-  // commented for now
-  // let products;
-  // let productCount = 0;
-  // campaignData.products.forEach((product) => {
-  //   product.colors.forEach((color) => {
-  //     if (color.image.front) {
-  //       productCount += 1;
-  //     }
-  //     if (color.image.back) {
-  //       productCount += 1;
-  //     }
-  //   });
-  // });
+  let products;
+  let productCount = 0;
+  campaignData.products.forEach((product) => {
+    product.colors.forEach((color) => {
+      if (color.image.front) {
+        productCount += 1;
+      }
+      if (color.image.back) {
+        productCount += 1;
+      }
+    });
+  });
 
-  // // directory which product design images will be saved
-  // const dir = path.join(
-  //   __dirname,
-  //   "..",
-  //   `/public/campaigns/${campaign._id.toString()}`
-  // );
+  // directory which product design images will be saved
+  const dir = path.join(
+    __dirname,
+    "..",
+    `/public/campaigns/${campaign._id.toString()}`
+  );
 
-  // // sending campaign data and campaign id in order save images in proper file
-  // products = await saveCampaign.onSave(campaignData, campaign._id);
+  // sending campaign data and campaign id in order save images in proper file
+  products = await saveCampaign.onSave(campaignData, campaign._id);
 
-  // console.table(products);
+  const files = fs.readdirSync(dir);
+  console.log(files.length, "::campaign create", files.length < productCount);
 
-  // const files = fs.readdirSync(dir);
-  // console.log(files.length, "::campaign create", files.length < productCount);
-
-  // if (files.length < productCount) {
-  //   products = await saveCampaign.onSave(campaignData, campaign._id);
-  // }
-  // // inserting saved images to campaign data
-  // campaign.products = [...products];
+  if (files.length < productCount) {
+    products = await saveCampaign.onSave(campaignData, campaign._id);
+  }
+  // inserting saved images to campaign data
+  campaign.products = [...products];
 
   // saving campaign in mongoDB
   //
@@ -123,6 +120,8 @@ exports.getOne = asyncHandler(async (req, res, next) => {
       creatorId: 0,
     }
   );
+
+  console.log(campaign.products[0].colors);
 
   res.status(200).json({
     success: true,
@@ -177,10 +176,10 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
     });
   } else {
     // first deleting old files to update them properly
-    // await deleteDirectory(campaignId); commented for now
+    await deleteDirectory(campaignId);
 
     // sending campaign data and campaign id in order save images in proper file
-    // const products = await saveCampaign.onSave(req.body, campaignId); commented for now
+    const products = await saveCampaign.onSave(req.body, campaignId);
 
     // edit the campaign
     const updatedCampaign = await Campaign.findByIdAndUpdate(
@@ -189,7 +188,7 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
       },
       {
         ...req.body,
-        // products: [...products], commented for now
+        products: [...products],
         _id: campaignId,
       },
       { new: true }
@@ -277,7 +276,7 @@ exports.deleteOne = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Malumotlar noto'g'ri kiritldi!`, 400));
   }
 
-  // await deleteDirectory(campaignId); commented for now
+  await deleteDirectory(campaignId);
 
   await Campaign.deleteOne({ _id: campaignId });
 
@@ -320,7 +319,7 @@ exports.getAllPublic = asyncHandler(async (req, res, next) => {
           printableArea: 1,
           colors: {
             color: 1,
-            // designImg: 1, commented for now
+            designImg: 1,
             image: 1,
           },
           sizes: 1,
@@ -384,7 +383,7 @@ exports.getOnePublic = asyncHandler(async (req, res, next) => {
           printableArea: 1,
           colors: {
             color: 1,
-            // designImg: 1, commented for now
+            designImg: 1,
             image: 1,
           },
           sizes: 1,

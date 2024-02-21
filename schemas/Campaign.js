@@ -77,16 +77,16 @@ const campaignSchema = mongoose.Schema({
               required: [true, "Product rasmi majburiy!"],
             },
           },
-          // designImg: {
-          //   front: {
-          //     type: String,
-          //     required: [true, "Product rasmi majburiy!"],
-          //   },
-          //   back: {
-          //     type: String,
-          //     required: [true, "Product rasmi majburiy!"],
-          //   },
-          // },
+          designImg: {
+            front: {
+              type: String,
+              required: [true, "Product rasmi majburiy!"],
+            },
+            back: {
+              type: String,
+              required: [true, "Product rasmi majburiy!"],
+            },
+          },
         },
       ],
       sizes: [
