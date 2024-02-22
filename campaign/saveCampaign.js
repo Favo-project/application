@@ -3,6 +3,8 @@ const path = require("path");
 const { executeAsyncOperation } = require("../utils");
 const { default: puppeteer } = require("puppeteer");
 
+const CANVAS_FRAME_WIDTH = 1500;
+
 function canvasContent(design, pArea, background) {
   return `
     <!DOCTYPE html>
@@ -58,7 +60,7 @@ function canvasContent(design, pArea, background) {
               await Promise.all(
                 objects.map(async (elem) => {
                   if (elem.objType === "text") {
-                    addText(canvas, elem, pArea);
+                    await addText(canvas, elem, pArea);
                   }
                   if (elem.objType === "icon") {
                     await addClipart(canvas, elem, pArea);
@@ -71,15 +73,36 @@ function canvasContent(design, pArea, background) {
             }
     
             // add text to canvas instance
-            function addText(canvas, obj, pArea) {
-              const text = new fabric.Text(obj.text, {
-                ...obj,
-                top:
-                  pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
-              });
+            async function addText(canvas, obj, pArea) {
+              if (obj.fontFamily === "Arial") {
+                const text = new fabric.Text(obj.text, {
+                  ...obj,
+                  top:
+                    pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
+                });
     
-              setPrintClip(text, pArea);
-              canvas.add(text);
+                setPrintClip(text, pArea);
+                canvas.add(text);
+    
+                return text;
+              } else {
+                const myfont = new FontFaceObserver(obj.fontFamily);
+                await myfont.load().then(() => {
+                  const text = new fabric.Text(obj.text, {
+                    ...obj,
+                    top:
+                      pArea.top -
+                      pArea.height / 2 +
+                      obj.relativeTop +
+                      obj.height / 2,
+                  });
+    
+                  setPrintClip(text, pArea);
+                  canvas.add(text);
+    
+                  return text;
+                });
+              }
             }
     
             // add svg to canvas instance
@@ -169,7 +192,7 @@ function canvasContent(design, pArea, background) {
               ${JSON.stringify(pArea)}
             );
     
-            const scaleRatio = 1400 / canvas.width;
+            const scaleRatio = ${CANVAS_FRAME_WIDTH} / canvas.width;
     
             canvas.setDimensions({
               width: canvas.width * scaleRatio,
@@ -179,14 +202,6 @@ function canvasContent(design, pArea, background) {
             canvas.setZoom(scaleRatio);
     
             canvas.renderAll();
-    
-            const loaderElem = document.getElementById("loader");
-    
-            const elem = document.createElement("span");
-    
-            elem.setAttribute("id", "loaded-elem");
-    
-            loaderElem.append(elem);
           })();
         </script>
       </body>
@@ -268,94 +283,6 @@ class SaveCampaign {
     });
   }
 
-  // // iterates and adds all objects to front canvas instance
-  // async designObjects(canvas, objects, pArea) {
-  //   await Promise.all(
-  //     objects.map(async (elem) => {
-  //       if (elem.objType === "text") {
-  //         this.addText(canvas, elem, pArea);
-  //       }
-  //       if (elem.objType === "icon") {
-  //         await this.addClipart(canvas, elem, pArea);
-  //       }
-  //       if (elem.objType === "image") {
-  //         await this.addImage(canvas, elem, pArea);
-  //       }
-  //     })
-  //   ).catch((err) => {
-  //     throw err;
-  //   });
-  // }
-
-  // // add text to canvas instance
-  // addText(canvas, obj, pArea) {
-  //   const text = new fabric.Text(obj.text, {
-  //     ...obj,
-  //     top: pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
-  //   });
-
-  //   this.setPrintClip(text, pArea);
-  //   canvas.add(text);
-  // }
-
-  // // add svg to canvas instance
-  // async addClipart(canvas, obj, pArea) {
-  //   await executeAsyncOperation((cb) => {
-  //     fabric.loadSVGFromURL(obj.url, (objects, options) => {
-  //       const svgObject = fabric.util.groupSVGElements(objects, options);
-  //       svgObject.set({
-  //         ...obj,
-  //         top: pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
-  //       });
-
-  //       // changes SVG color, svg containes a lot of sub objects this iteration changes all of their colors
-  //       svgObject._objects.map((elem) => {
-  //         return elem.fill ? elem.set({ fill: obj.fill }) : elem;
-  //       });
-
-  //       this.setPrintClip(svgObject, pArea);
-  //       canvas.add(svgObject);
-  //       cb(null, "Operation completed");
-  //     });
-  //   });
-  // }
-
-  // // add image to canvas instance
-  // async addImage(canvas, obj, pArea) {
-  //   await executeAsyncOperation((cb) => {
-  //     fabric.Image.fromURL(obj.imgUrl, (image) => {
-  //       image.set({
-  //         ...obj,
-  //         top: pArea.top - pArea.height / 2 + obj.relativeTop + obj.height / 2,
-  //       });
-
-  //       this.setPrintClip(image, pArea);
-  //       canvas.add(image);
-  //       cb(null, "Operation completed");
-  //     });
-  //   });
-  // }
-
-  // // set background to canvas instance
-  // async setBackgroundImage(canvas, imgUrl) {
-  //   await executeAsyncOperation((cb) => {
-  //     fabric.Image.fromURL(imgUrl, (image) => {
-  //       image.set({
-  //         scaleX: canvas.width / image.width,
-  //         scaleY: canvas.height / image.height,
-  //         top: canvas.width / 2,
-  //         left: canvas.height / 2,
-  //         originX: "center",
-  //         originY: "center",
-  //       });
-
-  //       canvas.setBackgroundImage(image);
-  //       canvas.renderAll();
-  //       cb(null, "Operation completed");
-  //     });
-  //   });
-  // }
-
   // method for saving canvas instance as image to local storage
   async saveAsImage(htmlPath, typeName, campaignId) {
     return await executeAsyncOperation(async (cb) => {
@@ -366,7 +293,7 @@ class SaveCampaign {
           "..",
           `/public/campaigns/${campaignId.toString()}`
         );
-        const filePath = `/campaigns/${campaignId}/${typeName}-${Date.now()}.jpeg`;
+        const filePath = `/campaigns/${campaignId}/${typeName}-${Date.now()}.webp`;
         const originalPath = path.join(__dirname, "../public", filePath);
 
         if (!fs.existsSync(dirPath)) {
@@ -379,13 +306,24 @@ class SaveCampaign {
         const page = await browser.newPage();
 
         // Set the size of the viewport to match your canvas dimensions
-        await page.setViewport({ width: 1400, height: 1400 }); // Set your canvas dimensions
+        await page.setViewport({
+          width: CANVAS_FRAME_WIDTH,
+          height: CANVAS_FRAME_WIDTH,
+        }); // Set your canvas dimensions
 
         // Open an HTML file with Konva.js code
-        await page.goto(htmlPath); // Replace with the path to your HTML file
+
+        await Promise.all([
+          page.goto(htmlPath), // Replace with the path to your HTML file
+          page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+        ]);
 
         // Capture the canvas as a screenshot
-        await page.screenshot({ path: originalPath });
+        await page.screenshot({
+          path: originalPath,
+          type: "webp",
+          quality: 100,
+        });
 
         // Close the browser
         await browser.close();
@@ -398,23 +336,6 @@ class SaveCampaign {
       }
     });
   }
-
-  // setPrintClip(obj, pArea) {
-  //   obj?.set?.({
-  //     clipPath: new fabric.Rect({
-  //       originX: "center",
-  //       originY: "center",
-  //       top: pArea.top,
-  //       left: pArea.left,
-  //       width: pArea.width,
-  //       height: pArea.height,
-  //       absolutePositioned: true,
-  //       fill: "transparent",
-  //       selectable: false,
-  //       evented: false,
-  //     }),
-  //   });
-  // }
 }
 
 exports.saveCampaign = new SaveCampaign();

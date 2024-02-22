@@ -48,7 +48,7 @@ exports.create = asyncHandler(async (req, res, next) => {
 
   // creating mongodb instance of campaign
   const campaign = new Campaign({
-    title: "Draft campaign",
+    title: "",
     design: campaignData.design,
     products: campaignData.products,
     campaignLevel: campaignData.campaignLevel,
@@ -169,10 +169,9 @@ exports.editAndSave = asyncHandler(async (req, res, next) => {
   if (isDeepStrictEqual(campaignSelect, requestSelect)) {
     res.status(200).json({
       success: true,
-      data: {
-        updated: false,
-        message: "Nothing to change",
-      },
+      updated: false,
+      message: "Nothing to change",
+      data: campaign,
     });
   } else {
     // first deleting old files to update them properly

@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
 const campaignSchema = mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, "Campaign nomi majburiy"],
-  },
+  title: String,
   description: String,
   status: String,
   design: {
@@ -126,6 +123,7 @@ const campaignSchema = mongoose.Schema({
   campaignLevel: {
     type: Number,
     required: [true, "Campaign level is required"],
+    default: 0,
   },
   soldAmount: {
     type: Number,
