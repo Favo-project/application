@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const storeSchema = mongoose.Schema({
   header: {
+    storeUrl: {
+      type: String,
+      required: [true, "Store url is required"],
+      unique: true,
+    },
     leayout: {
       type: String, // value is - "fullwidth" or "aspectratio",
       required: [true, "Layout type is required"],
@@ -46,6 +51,11 @@ const storeSchema = mongoose.Schema({
           type: String,
           required: [true, "Store subtitle is required"],
         },
+        showSubtitle: {
+          type: Boolean,
+          required: [true, "Show subtitle value is required"],
+          default: true,
+        },
       },
       image: String, // value is - image url string
     },
@@ -83,6 +93,19 @@ const storeSchema = mongoose.Schema({
     ref: "User",
     select: false,
     unique: true,
+  },
+  published: {
+    type: Boolean,
+    required: [true, "Store published type is required"],
+    default: false,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 
